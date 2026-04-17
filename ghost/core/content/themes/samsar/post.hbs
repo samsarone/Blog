@@ -1,0 +1,17 @@
+{{!< default}}
+
+{{#post}}
+<article class="article">
+    <p class="article-meta">{{date format="D MMM YYYY"}}{{#if primary_tag}} · {{primary_tag.name}}{{/if}}</p>
+    <h1 class="article-title">{{title}}</h1>
+    {{#if custom_excerpt}}
+        <p class="article-excerpt">{{custom_excerpt}}</p>
+    {{/if}}
+    {{#if feature_image}}
+        <img class="article-image" src="{{img_url feature_image size="l"}}" alt="{{title}}">
+    {{/if}}
+    <section class="article-content kg-content">
+        {{content}}
+    </section>
+</article>
+{{/post}}

@@ -1,0 +1,45 @@
+{{!< default}}
+
+<section class="hero">
+    <div class="hero-copy">
+        <p class="eyebrow">Samsar Blog</p>
+        <h1>{{@site.title}}</h1>
+        <p class="hero-text">{{@site.description}}</p>
+        <div class="hero-actions">
+            <a class="button button-primary" href="#latest">Read latest posts</a>
+            <a class="button button-secondary" href="https://app.samsar.one">Open app</a>
+        </div>
+    </div>
+
+    <aside class="enhance-card" data-enhance-root>
+        <p class="enhance-label">Enhance text with Samsar</p>
+        <h2>Turn rough notes into cleaner copy.</h2>
+        <textarea data-enhance-input rows="7" placeholder="Paste draft copy here"></textarea>
+        <div class="enhance-controls">
+            <input data-enhance-language type="text" placeholder="Language (optional)">
+            <input data-enhance-maxwords type="number" min="10" max="500" placeholder="Max words">
+        </div>
+        <button class="button button-primary" data-enhance-submit type="button">Enhance text</button>
+        <p class="enhance-status" data-enhance-status aria-live="polite"></p>
+        <pre class="enhance-output" data-enhance-output hidden></pre>
+    </aside>
+</section>
+
+<section class="post-feed" id="latest">
+    {{#foreach posts}}
+        <article class="post-card">
+            <a class="post-card-link" href="{{url}}">
+                {{#if feature_image}}
+                    <img class="post-card-image" src="{{img_url feature_image size="m"}}" alt="{{title}}">
+                {{/if}}
+                <div class="post-card-body">
+                    <p class="post-meta">{{date format="D MMM YYYY"}}{{#if primary_tag}} · {{primary_tag.name}}{{/if}}</p>
+                    <h2>{{title}}</h2>
+                    <p>{{excerpt words="28"}}</p>
+                </div>
+            </a>
+        </article>
+    {{/foreach}}
+</section>
+
+{{pagination}}
