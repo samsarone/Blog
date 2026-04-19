@@ -1,4 +1,4 @@
-const samsarService = require('../../services/samsar');
+const samsarService = require('../../../../services/samsar');
 
 module.exports = {
     async enhanceText(req, res, next) {
@@ -20,8 +20,8 @@ module.exports = {
                 language,
                 maxWords,
                 metadata: {
-                    source: 'samsar-blog',
-                    route: 'members/api/samsar/enhance-text'
+                    source: 'samsar-blog-admin',
+                    route: 'ghost/api/admin/samsar/enhance-text'
                 }
             });
 

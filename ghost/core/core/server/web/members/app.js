@@ -14,7 +14,6 @@ const api = require('../../api').endpoints;
 const commentRouter = require('../comments');
 const announcementRouter = require('../announcement');
 const corsMiddleware = require('./middleware/cors');
-const samsarController = require('./samsar-controller');
 
 /**
  * @returns {import('express').Application}
@@ -77,12 +76,6 @@ module.exports = function setupMembersApp() {
 
     membersApp.get('/api/entitlements', middleware.getEntitlementToken);
     membersApp.get('/api/integrity-token', middleware.createIntegrityToken);
-
-    membersApp.post(
-        '/api/samsar/enhance-text',
-        bodyParser.json({limit: '1mb'}),
-        samsarController.enhanceText
-    );
 
     membersApp.post(
         '/api/send-magic-link',

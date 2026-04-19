@@ -4,6 +4,7 @@ const {http} = require('@tryghost/api-framework');
 const auth = require('../../../../services/auth');
 const apiMw = require('../../middleware');
 const mw = require('./middleware');
+const samsarController = require('./samsar-controller');
 
 const shared = require('../../../shared');
 
@@ -37,6 +38,7 @@ module.exports = function apiRoutes() {
     router.put('/posts/:id', mw.authAdminApi, http(api.posts.edit));
     router.delete('/posts/:id', mw.authAdminApi, http(api.posts.destroy));
     router.post('/posts/:id/copy', mw.authAdminApi, http(api.posts.copy));
+    router.post('/samsar/enhance-text', mw.authAdminApi, express.json({limit: '1mb'}), samsarController.enhanceText);
 
     router.get('/mentions', mw.authAdminApi, http(api.mentions.browse));
 

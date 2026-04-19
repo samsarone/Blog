@@ -104,6 +104,14 @@
             />
 
             <div class="gh-editor-wordcount-container">
+                <button
+                    type="button"
+                    class="gh-btn gh-btn-outline gh-btn-icon"
+                    {{on "click" this.enhanceDraft}}
+                    disabled={{this.isEnhancingDraft}}
+                >
+                    <span>{{if this.isEnhancingDraft "Enhancing..." "Enhance draft"}}</span>
+                </button>
                 <div class="gh-editor-wordcount">
                     {{gh-pluralize this.wordCount "word"}}
                 </div>
@@ -121,6 +129,14 @@
                     as |publishManagement|
                 >
                     <div class="gh-editor-wordcount">
+                        <button
+                            type="button"
+                            class="gh-btn gh-btn-outline gh-btn-icon"
+                            {{on "click" this.enhanceDraft}}
+                            disabled={{this.isEnhancingDraft}}
+                        >
+                            <span>{{if this.isEnhancingDraft "Enhancing..." "Enhance draft"}}</span>
+                        </button>
                         <Editor::EmailSizeWarning @post={{this.post}} />
                         {{gh-pluralize this.wordCount "word"}}
                     </div>

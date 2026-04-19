@@ -145,11 +145,66 @@ function textHasTk(text) {
     return true;
 }
 
+function lexicalToPlainText(lexicalString) {
+    if (!lexicalString) {
+        return '';
+    }
+
+    try {
+        const lexical = JSON.parse(lexicalString);
+        const paragraphs = lexical?.root?.children || [];
+
+        return paragraphs.map((node) => {
+            const children = node?.children || [];
+            return children.map(child => child?.text || '').join('');
+        }).join('\n\n').trim();
+    } catch (error) {
+        return '';
+    }
+}
+
+function plainTextToLexical(text) {
+    const normalized = typeof text === 'string' ? text.replace(/\r\n/g, '\n').trim() : '';
+    const rawParagraphs = normalized ? normalized.split(/\n{2,}/) : [''];
+
+    return {
+        root: {
+            children: rawParagraphs.map((paragraph) => {
+                const lines = paragraph.split('\n');
+
+                return {
+                    children: lines.map((line, index) => ({
+                        detail: 0,
+                        format: 0,
+                        mode: 'normal',
+                        style: '',
+                        text: index < lines.length - 1 ? `${line}\n` : line,
+                        type: 'extended-text',
+                        version: 1
+                    })),
+                    direction: 'ltr',
+                    format: '',
+                    indent: 0,
+                    type: 'paragraph',
+                    version: 1
+                };
+            }),
+            direction: 'ltr',
+            format: '',
+            indent: 0,
+            type: 'root',
+            version: 1
+        }
+    };
+}
+
 @classic
 export default class LexicalEditorController extends Controller {
+    @service ajax;
     @controller application;
 
     @service feature;
+    @service ghostPaths;
     @service membersCountCache;
     @service modals;
     @service notifications;
@@ -165,6 +220,7 @@ export default class LexicalEditorController extends Controller {
     @inject config;
 
     @tracked excerptErrorMessage = '';
+    @tracked isEnhancingDraft = false;
 
     /* public properties -----------------------------------------------------*/
 
@@ -327,6 +383,48 @@ export default class LexicalEditorController extends Controller {
     @action
     updateSecondaryInstanceModel(lexical) {
         this.set('post.secondaryLexicalState', JSON.stringify(lexical));
+    }
+
+    @action
+    async enhanceDraft() {
+        const message = lexicalToPlainText(this.post.lexicalScratch || this.post.lexical);
+
+        if (!message) {
+            this.notifications.showAlert('Add draft content before enhancing.', {type: 'warn'});
+            return;
+        }
+
+        this.isEnhancingDraft = true;
+
+        try {
+            const url = this.ghostPaths.url.api('samsar/enhance-text');
+            const response = await this.ajax.post(url, {
+                data: {message}
+            });
+
+            const lexicalString = JSON.stringify(plainTextToLexical(response?.content || ''));
+            this.set('post.lexicalScratch', lexicalString);
+
+            if (this.editorAPI?.editorInstance) {
+                const state = this.editorAPI.editorInstance.parseEditorState(lexicalString);
+                this.editorAPI.editorInstance.setEditorState(state);
+                this.secondaryEditorAPI?.editorInstance?.setEditorState(state);
+            }
+
+            try {
+                this.localRevisions.scheduleSave(this.post.displayName, {...this.post.serialize({includeId: true}), lexical: lexicalString});
+            } catch (error) {
+                // ignore revision save errors
+            }
+
+            this._autosaveTask.perform();
+            this._timedSaveTask.perform();
+            this.notifications.showNotification('Draft enhanced.');
+        } catch (error) {
+            this.notifications.showAPIError(error, {defaultErrorText: 'Draft enhancement failed.'});
+        } finally {
+            this.isEnhancingDraft = false;
+        }
     }
 
     @action
