@@ -523,7 +523,7 @@ class OEmbedService {
             // and metascraper.
             url = url.trim();
 
-            if (type === 'video') {
+            if (!type || type === 'video') {
                 const directVideoEmbed = getDirectVideoOembed(url);
 
                 if (directVideoEmbed) {

@@ -247,10 +247,29 @@ export default class KoenigLexicalEditor extends Component {
     }
 
     ReactComponent = (props) => {
+        const inferEmbedType = (url, explicitType) => {
+            if (explicitType) {
+                return explicitType;
+            }
+
+            try {
+                const extension = new URL(url).pathname.split('.').pop()?.toLowerCase();
+
+                if (['m4v', 'mov', 'mp4', 'ogv', 'webm'].includes(extension)) {
+                    return 'video';
+                }
+            } catch (err) {
+                // let the API validate malformed URLs
+            }
+
+            return explicitType;
+        };
+
         const fetchEmbed = async (url, {type}) => {
             let oembedEndpoint = this.ghostPaths.url.api('oembed');
+            const inferredType = inferEmbedType(url, type);
             let response = await this.ajax.request(oembedEndpoint, {
-                data: {url, type}
+                data: {url, type: inferredType}
             });
             return response;
         };
