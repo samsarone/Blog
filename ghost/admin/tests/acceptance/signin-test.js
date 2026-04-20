@@ -165,11 +165,11 @@ describe('Acceptance: Signin', function () {
             expect(currentURL()).to.equal('/posts');
         });
 
-        it('redirects author user to site', async function () {
+        it('redirects author user to posts', async function () {
             await setupSigninFlow(this.server, {role: 'Author'});
             await click('[data-test-button="sign-in"]');
 
-            expect(currentURL()).to.equal('/site');
+            expect(currentURL()).to.equal('/posts');
         });
     });
 });
