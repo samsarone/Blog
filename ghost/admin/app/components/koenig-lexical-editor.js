@@ -247,25 +247,71 @@ export default class KoenigLexicalEditor extends Component {
     }
 
     ReactComponent = (props) => {
+        const directVideoMimeTypes = {
+            m4v: 'video/mp4',
+            mov: 'video/quicktime',
+            mp4: 'video/mp4',
+            ogv: 'video/ogg',
+            webm: 'video/webm'
+        };
+
+        const getDirectVideoMimeType = (url) => {
+            try {
+                const extension = new URL(url).pathname.split('.').pop()?.toLowerCase();
+                return directVideoMimeTypes[extension] || null;
+            } catch (err) {
+                return null;
+            }
+        };
+
+        const buildDirectVideoEmbed = (url) => {
+            const mimeType = getDirectVideoMimeType(url);
+
+            if (!mimeType) {
+                return null;
+            }
+
+            let providerName = null;
+            let providerUrl = null;
+
+            try {
+                const parsedUrl = new URL(url);
+                providerName = parsedUrl.hostname;
+                providerUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
+            } catch (err) {
+                // let URL validation happen elsewhere
+            }
+
+            return {
+                type: 'video',
+                version: '1.0',
+                provider_name: providerName,
+                provider_url: providerUrl,
+                width: 640,
+                height: 360,
+                html: `<video controls playsinline preload="metadata" style="width: 100%; height: auto;"><source src="${url}" type="${mimeType}"></video>`
+            };
+        };
+
         const inferEmbedType = (url, explicitType) => {
             if (explicitType) {
                 return explicitType;
             }
 
-            try {
-                const extension = new URL(url).pathname.split('.').pop()?.toLowerCase();
-
-                if (['m4v', 'mov', 'mp4', 'ogv', 'webm'].includes(extension)) {
-                    return 'video';
-                }
-            } catch (err) {
-                // let the API validate malformed URLs
+            if (getDirectVideoMimeType(url)) {
+                return 'video';
             }
 
             return explicitType;
         };
 
         const fetchEmbed = async (url, {type}) => {
+            const directVideoEmbed = buildDirectVideoEmbed(url);
+
+            if (directVideoEmbed) {
+                return directVideoEmbed;
+            }
+
             let oembedEndpoint = this.ghostPaths.url.api('oembed');
             const inferredType = inferEmbedType(url, type);
             let response = await this.ajax.request(oembedEndpoint, {
