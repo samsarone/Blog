@@ -12,6 +12,13 @@ const path = require('path');
 // Some sites block non-standard user agents so we need to mimic a typical browser
 // Note: the Ghost/5.0 string _may_ be in use by 3rd parties so use caution when updating across majors
 const USER_AGENT = 'Mozilla/5.0 (compatible; Ghost/5.0; +https://ghost.org/)';
+const DIRECT_VIDEO_MIME_TYPES = {
+    '.m4v': 'video/mp4',
+    '.mov': 'video/quicktime',
+    '.mp4': 'video/mp4',
+    '.ogv': 'video/ogg',
+    '.webm': 'video/webm'
+};
 
 const messages = {
     noUrlProvided: 'No url provided.',
@@ -49,6 +56,44 @@ const findUrlWithProvider = (url) => {
     }
 
     return {url, provider};
+};
+
+const getDirectVideoMimeType = (url) => {
+    try {
+        const extension = path.extname(new URL(url).pathname).toLowerCase();
+        return DIRECT_VIDEO_MIME_TYPES[extension] || null;
+    } catch (err) {
+        return null;
+    }
+};
+
+const getDirectVideoOembed = (url) => {
+    const mimeType = getDirectVideoMimeType(url);
+
+    if (!mimeType) {
+        return null;
+    }
+
+    let providerName = null;
+    let providerUrl;
+
+    try {
+        const parsedUrl = new URL(url);
+        providerName = parsedUrl.hostname;
+        providerUrl = `${parsedUrl.protocol}//${parsedUrl.host}`;
+    } catch (err) {
+        // ignore invalid URL parsing here, upstream validation will handle it
+    }
+
+    return {
+        type: 'video',
+        version: '1.0',
+        provider_name: providerName,
+        provider_url: providerUrl,
+        width: 640,
+        height: 360,
+        html: `<video controls playsinline preload="metadata" style="width: 100%; height: auto;"><source src="${_.escape(url)}" type="${mimeType}"></video>`
+    };
 };
 
 /**
@@ -477,6 +522,14 @@ class OEmbedService {
             // Trimming solves the difference of url validation between `new URL(url)`
             // and metascraper.
             url = url.trim();
+
+            if (type === 'video') {
+                const directVideoEmbed = getDirectVideoOembed(url);
+
+                if (directVideoEmbed) {
+                    return directVideoEmbed;
+                }
+            }
 
             for (const provider of this.customProviders) {
                 if (await provider.canSupportRequest(urlObject)) {
