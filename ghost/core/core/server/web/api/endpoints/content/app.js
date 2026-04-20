@@ -33,7 +33,7 @@ module.exports = function setupApiApp() {
 
     // API error handling
     apiApp.use(errorHandler.resourceNotFound);
-    apiApp.use(errorHandler.handleJSONResponse(sentry));
+    apiApp.use(...errorHandler.handleJSONResponse(sentry));
 
     debug('Content API setup end');
 
