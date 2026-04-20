@@ -7,6 +7,7 @@ const path = require('path');
 const camelCase = require('lodash/camelCase');
 
 const adminXApps = ['admin-x-settings', 'activitypub', 'posts', 'stats'];
+const patchedKoenigLexicalPath = path.resolve(__dirname, '../../vendor/koenig-lexical-patched/koenig-lexical.umd.js');
 
 function generateHash(filePath) {
     const fileContents = fs.readFileSync(filePath, 'utf8');
@@ -27,7 +28,7 @@ module.exports = {
         if (!this.env) {
             this.env = env;
 
-            const koenigLexicalPath = require.resolve('@tryghost/koenig-lexical');
+            const koenigLexicalPath = fs.existsSync(patchedKoenigLexicalPath) ? patchedKoenigLexicalPath : require.resolve('@tryghost/koenig-lexical');
             this.packageConfig['editorFilename'] = path.basename(koenigLexicalPath);
             this.packageConfig['editorHash'] = process.env.EDITOR_URL ? 'development' : generateHash(koenigLexicalPath);
 
@@ -109,7 +110,7 @@ module.exports = {
         // if we are passed a URL for Koenig-Lexical dev server, we don't need to copy the assets
         if (!process.env.EDITOR_URL) {
             // copy the @tryghost/koenig-lexical assets
-            const koenigLexicalPath = path.dirname(require.resolve('@tryghost/koenig-lexical'));
+            const koenigLexicalPath = fs.existsSync(patchedKoenigLexicalPath) ? path.dirname(patchedKoenigLexicalPath) : path.dirname(require.resolve('@tryghost/koenig-lexical'));
             const assetsKoenigLexicalPath = `${assetsOut}/assets/koenig-lexical`;
 
             if (fs.existsSync(koenigLexicalPath)) {
