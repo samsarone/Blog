@@ -38,12 +38,9 @@ _private.getAdminRedirectUrl = ({requestedHost, requestedUrl, queryParameters, s
 
     debug('getAdminRedirectUrl', requestedHost, requestedUrl, adminHost, siteHost);
 
-    // CASE: we only redirect the admin access if `admin.url` is configured
-    // If url and admin.url are not equal AND the requested host does not match, redirect.
-    // The first condition is the most important, because it ensures that you have a custom admin url configured,
-    // because we don't force an admin redirect if you have a custom url configured, but no admin url.
-    if (adminHost !== siteHost &&
-        adminHost !== requestedHost) {
+    // CASE: always canonicalize the admin host to the configured admin URL host.
+    // This avoids mixed-host session origins such as samsar.one vs www.samsar.one.
+    if (adminHost !== requestedHost) {
         debug('redirect because admin host does not match');
 
         return _private.redirectUrl({
@@ -72,8 +69,19 @@ _private.getAdminRedirectUrl = ({requestedHost, requestedUrl, queryParameters, s
  */
 _private.getFrontendRedirectUrl = ({requestedHost, requestedUrl, queryParameters, secure}) => {
     const siteUrl = urlUtils.urlFor('home', true);
+    const siteHost = url.parse(siteUrl).host;
 
     debug('getFrontendRedirectUrl', requestedHost, requestedUrl, siteUrl);
+
+    if (siteHost !== requestedHost) {
+        debug('redirect because host does not match canonical site host');
+
+        return _private.redirectUrl({
+            redirectTo: siteUrl,
+            pathname: requestedUrl,
+            query: queryParameters
+        });
+    }
 
     // CASE: configured canonical url is HTTPS, but request is HTTP, redirect to requested host + SSL
     if (urlUtils.isSSL(siteUrl) && !secure) {

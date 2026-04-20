@@ -419,9 +419,9 @@ export default class LexicalEditorController extends Controller {
 
             this._autosaveTask.perform();
             this._timedSaveTask.perform();
-            this.notifications.showNotification('Draft enhanced.');
+            this.notifications.showNotification('Text enhanced.');
         } catch (error) {
-            this.notifications.showAPIError(error, {defaultErrorText: 'Draft enhancement failed.'});
+            this.notifications.showAPIError(error, {defaultErrorText: 'Text enhancement failed.'});
         } finally {
             this.isEnhancingDraft = false;
         }

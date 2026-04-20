@@ -110,7 +110,7 @@
                     {{on "click" this.enhanceDraft}}
                     disabled={{this.isEnhancingDraft}}
                 >
-                    <span>{{if this.isEnhancingDraft "Enhancing..." "Enhance draft"}}</span>
+                    <span>{{if this.isEnhancingDraft "Enhancing..." "Enhance text"}}</span>
                 </button>
                 <div class="gh-editor-wordcount">
                     {{gh-pluralize this.wordCount "word"}}
@@ -135,7 +135,7 @@
                             {{on "click" this.enhanceDraft}}
                             disabled={{this.isEnhancingDraft}}
                         >
-                            <span>{{if this.isEnhancingDraft "Enhancing..." "Enhance draft"}}</span>
+                            <span>{{if this.isEnhancingDraft "Enhancing..." "Enhance text"}}</span>
                         </button>
                         <Editor::EmailSizeWarning @post={{this.post}} />
                         {{gh-pluralize this.wordCount "word"}}
