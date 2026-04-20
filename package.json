@@ -10,5 +10,25 @@
     "start": "cd ghost/core && node index.js",
     "dev": "cd ghost/core && node index.js",
     "build:assets": "cd ghost/core && pnpm build:assets"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@swc/core",
+      "core-js",
+      "cpu-features",
+      "dtrace-provider",
+      "esbuild",
+      "fsevents",
+      "msw",
+      "nx",
+      "protobufjs",
+      "re2",
+      "sharp",
+      "sqlite3",
+      "ssh2"
+    ]
   }
 }

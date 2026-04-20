@@ -1,19 +1,56 @@
 {{!< default}}
 
 <section class="hero">
-    <div class="hero-copy">
-        <p class="eyebrow">Samsar Blog</p>
-        <h1>{{@site.title}}</h1>
-        <p class="hero-text">{{@site.description}}</p>
-        <div class="hero-actions">
-            <a class="button button-primary" href="#latest">Read latest posts</a>
-            <a class="button button-secondary" href="https://docs.samsar.one">Read docs</a>
-            <a class="button button-secondary" href="https://app.samsar.one">Open Studio</a>
+    <div class="hero-grid">
+        <div class="hero-copy">
+            <p class="eyebrow">Samsar Blog</p>
+            <h1>Product notes, technical writing, and workflow updates from Samsar.</h1>
+            <p class="hero-text">{{@site.description}}</p>
+            <div class="hero-actions">
+                <a class="button button-primary" href="#latest">Read latest posts</a>
+                <a class="button button-secondary" href="https://docs.samsar.one">Read docs</a>
+                <a class="button button-secondary" href="https://app.samsar.one">Open Studio</a>
+            </div>
         </div>
+
+        <aside class="hero-splash" aria-label="Samsar platform preview">
+            <div class="hero-splash-copy">
+                <p class="eyebrow">Minimal CTA</p>
+                <h2>Build on the same stack behind the product.</h2>
+                <p class="hero-splash-text">Use the APIs, Studio, and docs together for applied automation, media workflows, and custom business tooling.</p>
+                <a class="button button-primary hero-splash-cta" href="https://samsar.one">Visit landing page</a>
+            </div>
+            <img class="hero-splash-image" src="{{asset "images/samsar-one-business-omni-banner.png"}}" alt="Samsar business omni banner">
+        </aside>
+    </div>
+    <div class="hero-stats" aria-label="Quick links">
+        <a class="hero-stat" href="https://samsar.one">
+            <span class="hero-stat-label">Landing</span>
+            <strong>Main site</strong>
+        </a>
+        <a class="hero-stat" href="https://docs.samsar.one">
+            <span class="hero-stat-label">Docs</span>
+            <strong>Integration guides</strong>
+        </a>
+        <a class="hero-stat" href="https://app.samsar.one">
+            <span class="hero-stat-label">Studio</span>
+            <strong>Product workspace</strong>
+        </a>
+        <a class="hero-stat" href="https://github.com/samsarone">
+            <span class="hero-stat-label">GitHub</span>
+            <strong>Open repositories</strong>
+        </a>
+    </div>
+    <div class="section-heading" id="latest">
+        <div>
+            <p class="eyebrow">Latest</p>
+            <h2>Recent posts</h2>
+        </div>
+        <a class="button button-secondary section-link" href="https://docs.samsar.one">Browse docs</a>
     </div>
 </section>
 
-<section class="post-feed" id="latest">
+<section class="post-feed">
     {{#foreach posts}}
         <article class="post-card">
             <a class="post-card-link" href="{{url}}">

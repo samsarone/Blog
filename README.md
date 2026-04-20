@@ -31,4 +31,21 @@ Use:
 - `API_HOST=https://api.samsar.one/v1`
 - Ghost URL `https://samsar.one/blog/`
 
+Deploy commands:
+
+```bash
+./deploy.sh
+./deploy.sh --all
+```
+
+`./deploy.sh` syncs the active theme and restarts Ghost.
+
+`./deploy.sh --all` first stages and commits local changes with an automatic deploy commit message, pushes the current branch, then performs a full rebuild on the server, including:
+- workspace dependency install
+- `ghost/core` user-facing asset build
+- `ghost/admin` production build
+- full `ghost/core` runtime sync into the live Ghost directory while preserving live content and config
+
+Set `AUTO_COMMIT_MESSAGE` to override the default commit message.
+
 See [BLOG_SETUP.md](/Users/pritamroy/Documents/others/workspace/samsar_one/samsar_blog/BLOG_SETUP.md).
