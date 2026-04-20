@@ -71,8 +71,8 @@ describe('Acceptance: Signin', function () {
         await authenticateSession();
         await visit('/signin');
 
-        // With analytics mocks, authors get redirected to home first, then to site
-        expect(currentURL(), 'current url').to.equal('/site');
+        // With analytics mocks, authors get redirected to home first, then to posts
+        expect(currentURL(), 'current url').to.equal('/posts');
     });
 
     describe('when attempting to signin', function () {
