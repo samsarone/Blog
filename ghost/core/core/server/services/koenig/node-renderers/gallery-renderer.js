@@ -148,6 +148,7 @@ function renderGalleryNode(node, options = {}) {
 
     if (node.caption) {
         let figcaption = document.createElement('figcaption');
+        figcaption.setAttribute('class', 'kg-media-caption');
         figcaption.innerHTML = node.caption;
         figure.appendChild(figcaption);
         figure.setAttribute('class', `${figure.getAttribute('class')} kg-card-hascaption`);

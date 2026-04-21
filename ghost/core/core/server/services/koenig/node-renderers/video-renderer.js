@@ -84,7 +84,7 @@ function cardTemplate({node, cardClasses}) {
                     </div>
                 </div>
             </div>
-            ${node.caption ? `<figcaption>${node.caption}</figcaption>` : ''}
+            ${node.caption ? `<figcaption class="kg-media-caption">${node.caption}</figcaption>` : ''}
         </figure>
     `
     );
@@ -137,7 +137,7 @@ function emailCardTemplate({node, options, cardClasses}) {
             </v:group>
             <![endif]-->
 
-            ${node.caption ? `<figcaption>${node.caption}</figcaption>` : ''}
+            ${node.caption ? `<figcaption class="kg-media-caption">${node.caption}</figcaption>` : ''}
         </figure>
         `
     );

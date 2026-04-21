@@ -1,0 +1,41 @@
+.kg-image-card > figcaption,
+.kg-gallery-card > figcaption,
+.kg-embed-card > figcaption,
+.kg-video-card > figcaption {
+    overflow-wrap: anywhere;
+}
+
+.kg-image-card > figcaption:not([data-kg-caption]),
+.kg-gallery-card > figcaption:not([data-kg-caption]),
+.kg-embed-card > figcaption:not([data-kg-caption]),
+.kg-video-card > figcaption:not([data-kg-caption]),
+.kg-media-caption:not(.kg-media-caption-expanded) .kg-media-caption-content {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.kg-media-caption-content {
+    display: block;
+}
+
+.kg-card .kg-media-caption-toggle {
+    display: none;
+    margin: 0.45em auto 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.875em;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+}
+
+.kg-card .kg-media-caption.kg-media-caption-overflow .kg-media-caption-toggle {
+    display: block;
+    width: fit-content;
+}

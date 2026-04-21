@@ -64,6 +64,7 @@ function renderTemplate(node, document, options) {
     const caption = node.caption;
     if (caption) {
         const figcaption = document.createElement('figcaption');
+        figcaption.setAttribute('class', 'kg-media-caption');
         figcaption.innerHTML = caption;
         figure.appendChild(figcaption);
         figure.setAttribute('class', `${figure.getAttribute('class')} kg-card-hascaption`);

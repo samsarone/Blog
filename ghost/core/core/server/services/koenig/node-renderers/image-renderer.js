@@ -191,6 +191,7 @@ function renderImageNode(node, options = {}) {
 
     if (node.caption) {
         const caption = document.createElement('figcaption');
+        caption.setAttribute('class', 'kg-media-caption');
         caption.innerHTML = node.caption;
         figure.appendChild(caption);
     }
