@@ -11,6 +11,9 @@
     "paths": {
         "contentPath": "content/"
     },
+    "security": {
+        "staffDeviceVerification": false
+    },
     "logging": {
         "level": "info",
         "rotation": {

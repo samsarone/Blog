@@ -292,6 +292,7 @@ with path.open() as f:
     data = json.load(f)
 
 data["url"] = "https://www.samsar.one/blog/"
+data.setdefault("security", {})["staffDeviceVerification"] = False
 
 with path.open("w") as f:
     json.dump(data, f, indent=2)

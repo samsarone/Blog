@@ -22,6 +22,9 @@
     "paths": {
         "contentPath": "content/"
     },
+    "security": {
+        "staffDeviceVerification": false
+    },
     "privacy": {
         "useUpdateCheck": true
     },
