@@ -107,11 +107,23 @@
                 <button
                     type="button"
                     class="gh-btn gh-btn-outline gh-btn-icon"
+                    data-test-enhance-text-button
                     {{on "click" this.enhanceDraft}}
                     disabled={{this.isEnhancingDraft}}
                 >
                     <span>{{if this.isEnhancingDraft "Enhancing..." "Enhance text"}}</span>
                 </button>
+                {{#if this.enhancedDraftOriginalLexical}}
+                    <button
+                        type="button"
+                        class="gh-btn gh-btn-outline gh-btn-icon"
+                        data-test-enhance-text-undo-button
+                        {{on "click" this.undoEnhancedDraft}}
+                        disabled={{this.isEnhancingDraft}}
+                    >
+                        <span>Undo</span>
+                    </button>
+                {{/if}}
                 <div class="gh-editor-wordcount">
                     {{gh-pluralize this.wordCount "word"}}
                 </div>
@@ -132,11 +144,23 @@
                         <button
                             type="button"
                             class="gh-btn gh-btn-outline gh-btn-icon"
+                            data-test-enhance-text-button
                             {{on "click" this.enhanceDraft}}
                             disabled={{this.isEnhancingDraft}}
                         >
                             <span>{{if this.isEnhancingDraft "Enhancing..." "Enhance text"}}</span>
                         </button>
+                        {{#if this.enhancedDraftOriginalLexical}}
+                            <button
+                                type="button"
+                                class="gh-btn gh-btn-outline gh-btn-icon"
+                                data-test-enhance-text-undo-button
+                                {{on "click" this.undoEnhancedDraft}}
+                                disabled={{this.isEnhancingDraft}}
+                            >
+                                <span>Undo</span>
+                            </button>
+                        {{/if}}
                         <Editor::EmailSizeWarning @post={{this.post}} />
                         {{gh-pluralize this.wordCount "word"}}
                     </div>

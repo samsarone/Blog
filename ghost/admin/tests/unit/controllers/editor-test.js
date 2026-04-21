@@ -210,6 +210,96 @@ describe('Unit: Controller: lexical-editor', function () {
         });
     });
 
+    describe('enhanceDraft', function () {
+        function lexicalForText(text) {
+            return JSON.stringify({
+                root: {
+                    children: [{
+                        children: [{
+                            detail: 0,
+                            format: 0,
+                            mode: 'normal',
+                            style: '',
+                            text,
+                            type: 'extended-text',
+                            version: 1
+                        }],
+                        direction: 'ltr',
+                        format: '',
+                        indent: 0,
+                        type: 'paragraph',
+                        version: 1
+                    }],
+                    direction: 'ltr',
+                    format: '',
+                    indent: 0,
+                    type: 'root',
+                    version: 1
+                }
+            });
+        }
+
+        function textFromLexical(lexicalString) {
+            const lexical = JSON.parse(lexicalString);
+            return lexical.root.children[0].children.map(child => child.text).join('');
+        }
+
+        it('stores the original body after enhancement and restores it on undo', async function () {
+            let controller = this.owner.lookup('controller:lexical-editor');
+            let originalLexical = lexicalForText('Original body');
+            let enhancedResponse = RSVP.defer();
+            let post = createPost({
+                lexical: originalLexical,
+                lexicalScratch: originalLexical,
+                status: 'published'
+            });
+
+            let ajaxPost = sinon.stub().returns(enhancedResponse.promise);
+            let showNotification = sinon.spy();
+            let scheduleSave = sinon.spy();
+
+            controller.set('post', post);
+            controller.set('ajax', EmberObject.create({post: ajaxPost}));
+            controller.set('ghostPaths', EmberObject.create({
+                url: {
+                    api(path) {
+                        return `/api/admin/${path}/`;
+                    }
+                }
+            }));
+            controller.set('localRevisions', EmberObject.create({scheduleSave}));
+            controller.set('notifications', EmberObject.create({
+                showAlert() {},
+                showAPIError() {},
+                showNotification
+            }));
+
+            const enhancePromise = controller.enhanceDraft();
+
+            expect(controller.enhancedDraftOriginalLexical).to.equal(null);
+            expect(controller.isEnhancingDraft).to.be.true;
+            expect(ajaxPost.calledWith(
+                '/api/admin/samsar/enhance-text/',
+                {data: {message: 'Original body'}}
+            )).to.be.true;
+
+            enhancedResponse.resolve({content: 'Enhanced body'});
+            await enhancePromise;
+
+            expect(controller.enhancedDraftOriginalLexical).to.equal(originalLexical);
+            expect(controller.isEnhancingDraft).to.be.false;
+            expect(textFromLexical(controller.post.lexicalScratch)).to.equal('Enhanced body');
+            expect(scheduleSave.calledOnce).to.be.true;
+            expect(showNotification.calledWith('Text enhanced.')).to.be.true;
+
+            controller.undoEnhancedDraft();
+
+            expect(controller.enhancedDraftOriginalLexical).to.equal(null);
+            expect(controller.post.lexicalScratch).to.equal(originalLexical);
+            expect(showNotification.calledWith('Text enhancement undone.')).to.be.true;
+        });
+    });
+
     describe('TK count in title', function () {
         it('should have count 0 for no TK', async function () {
             let controller = this.owner.lookup('controller:lexical-editor');

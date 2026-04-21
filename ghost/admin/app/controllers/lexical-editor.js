@@ -221,6 +221,7 @@ export default class LexicalEditorController extends Controller {
 
     @tracked excerptErrorMessage = '';
     @tracked isEnhancingDraft = false;
+    @tracked enhancedDraftOriginalLexical = null;
 
     /* public properties -----------------------------------------------------*/
 
@@ -387,7 +388,8 @@ export default class LexicalEditorController extends Controller {
 
     @action
     async enhanceDraft() {
-        const message = lexicalToPlainText(this.post.lexicalScratch || this.post.lexical);
+        const originalLexicalString = this.post.lexicalScratch || this.post.lexical;
+        const message = lexicalToPlainText(originalLexicalString);
 
         if (!message) {
             this.notifications.showAlert('Add draft content before enhancing.', {type: 'warn'});
@@ -403,28 +405,25 @@ export default class LexicalEditorController extends Controller {
             });
 
             const lexicalString = JSON.stringify(plainTextToLexical(response?.content || ''));
-            this.set('post.lexicalScratch', lexicalString);
-
-            if (this.editorAPI?.editorInstance) {
-                const state = this.editorAPI.editorInstance.parseEditorState(lexicalString);
-                this.editorAPI.editorInstance.setEditorState(state);
-                this.secondaryEditorAPI?.editorInstance?.setEditorState(state);
-            }
-
-            try {
-                this.localRevisions.scheduleSave(this.post.displayName, {...this.post.serialize({includeId: true}), lexical: lexicalString});
-            } catch (error) {
-                // ignore revision save errors
-            }
-
-            this._autosaveTask.perform();
-            this._timedSaveTask.perform();
+            this.enhancedDraftOriginalLexical = originalLexicalString;
+            this._applyDraftLexical(lexicalString);
             this.notifications.showNotification('Text enhanced.');
         } catch (error) {
             this.notifications.showAPIError(error, {defaultErrorText: 'Text enhancement failed.'});
         } finally {
             this.isEnhancingDraft = false;
         }
+    }
+
+    @action
+    undoEnhancedDraft() {
+        if (!this.enhancedDraftOriginalLexical) {
+            return;
+        }
+
+        this._applyDraftLexical(this.enhancedDraftOriginalLexical);
+        this.enhancedDraftOriginalLexical = null;
+        this.notifications.showNotification('Text enhancement undone.');
     }
 
     @action
@@ -1460,6 +1459,7 @@ export default class LexicalEditorController extends Controller {
         this.set('wordCount', 0);
         this.set('postTkCount', 0);
         this.set('featureImageTkCount', 0);
+        this.enhancedDraftOriginalLexical = null;
 
         // remove the onbeforeunload handler as it's only relevant whilst on
         // the editor route
@@ -1498,6 +1498,25 @@ export default class LexicalEditorController extends Controller {
         _timedSaveTask;
 
     /* Private methods -------------------------------------------------------*/
+
+    _applyDraftLexical(lexicalString) {
+        this.set('post.lexicalScratch', lexicalString);
+
+        if (this.editorAPI?.editorInstance) {
+            const state = this.editorAPI.editorInstance.parseEditorState(lexicalString);
+            this.editorAPI.editorInstance.setEditorState(state);
+            this.secondaryEditorAPI?.editorInstance?.setEditorState(state);
+        }
+
+        try {
+            this.localRevisions.scheduleSave(this.post.displayName, {...this.post.serialize({includeId: true}), lexical: lexicalString});
+        } catch (error) {
+            // ignore revision save errors
+        }
+
+        this._autosaveTask.perform();
+        this._timedSaveTask.perform();
+    }
 
     _assignLexicalDiffToLeaveModalReason() {
         try {
