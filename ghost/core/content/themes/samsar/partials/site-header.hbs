@@ -5,11 +5,19 @@
         </span>
     </a>
 
-    <nav class="site-nav">
+    <nav class="site-nav" aria-label="Primary">
         <a href="https://samsar.one">Home</a>
         <a href="{{@site.url}}/#latest">Latest</a>
-        <a href="https://docs.samsar.one">Docs</a>
-        <a href="https://samsar.one/pricing">Pricing</a>
-        <a href="https://app.samsar.one">Studio</a>
+        <a class="nav-collapsed" href="https://docs.samsar.one">Docs</a>
+        <a class="nav-collapsed" href="https://samsar.one/pricing">Pricing</a>
+        <a class="nav-studio" href="https://app.samsar.one">Studio</a>
+        <details class="nav-more">
+            <summary>More</summary>
+            <div class="nav-more-panel">
+                <a class="nav-more-compact" href="https://app.samsar.one">Studio</a>
+                <a href="https://docs.samsar.one">Docs</a>
+                <a href="https://samsar.one/pricing">Pricing</a>
+            </div>
+        </details>
     </nav>
 </header>
