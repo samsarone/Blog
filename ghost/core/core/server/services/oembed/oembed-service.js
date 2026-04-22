@@ -92,7 +92,7 @@ const getDirectVideoOembed = (url) => {
         provider_url: providerUrl,
         width: 640,
         height: 360,
-        html: `<video controls playsinline preload="metadata" style="width: 100%; height: auto;"><source src="${_.escape(url)}" type="${mimeType}"></video>`
+        html: `<video controls playsinline preload="metadata" width="640" height="360" style="width: 100%; height: auto;"><source src="${_.escape(url)}" type="${mimeType}"></video>`
     };
 };
 

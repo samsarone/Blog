@@ -115,6 +115,28 @@
     margin: 0 auto;
 }
 
+.koenig-react-editor .kg-samsar-responsive-video {
+    width: min(100%, var(--kg-samsar-video-max-width, 100%)) !important;
+    max-width: 100% !important;
+    margin-right: auto !important;
+    margin-left: auto !important;
+}
+
+.koenig-react-editor .kg-embed-card.kg-samsar-responsive-video .kg-samsar-responsive-video-media,
+.koenig-react-editor .kg-embed-card.kg-samsar-responsive-video > iframe,
+.koenig-react-editor .kg-embed-card.kg-samsar-responsive-video > video,
+.koenig-react-editor .kg-embed-card.kg-samsar-responsive-video video {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    aspect-ratio: var(--kg-samsar-video-aspect-ratio, 16 / 9) !important;
+    height: auto !important;
+}
+
+.koenig-react-editor .kg-video-card.kg-samsar-responsive-video .kg-video-container {
+    width: 100% !important;
+}
+
 .koenig-react-editor-loading,
 .koenig-react-editor-error {
     font-family: Georgia, Times, serif;

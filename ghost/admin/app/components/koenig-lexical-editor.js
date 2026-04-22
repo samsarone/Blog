@@ -1,6 +1,6 @@
 import * as Sentry from '@sentry/ember';
 import Component from '@glimmer/component';
-import React, {Suspense} from 'react';
+import React, {Suspense, useEffect, useRef} from 'react';
 import moment from 'moment-timezone';
 import {action} from '@ember/object';
 import {didCancel, task} from 'ember-concurrency';
@@ -55,6 +55,114 @@ export function getCardVisibilitySettings(cardConfig = {}) {
     const isPage = post?.isPage || post?.displayName === 'page';
 
     return isPage ? 'web only' : 'web and email';
+}
+
+const RESPONSIVE_VIDEO_CLASS = 'kg-samsar-responsive-video';
+const RESPONSIVE_VIDEO_MEDIA_CLASS = 'kg-samsar-responsive-video-media';
+const PORTRAIT_MAX_WIDTH = 420;
+const SQUARE_MAX_WIDTH = 560;
+const LANDSCAPE_FULL_WIDTH = 720;
+const VIDEO_HOST_PATTERN = /(youtube(?:-nocookie)?\.com|youtu\.be|vimeo\.com|player\.vimeo\.com|tiktok\.com|loom\.com|wistia\.(?:com|net)|streamable\.com|dailymotion\.com|twitch\.tv|instagram\.com|facebook\.com)/i;
+
+function toVideoDimension(value) {
+    const number = Number.parseFloat(value);
+    return Number.isFinite(number) && number > 0 ? number : null;
+}
+
+function getVideoCardMedia(card) {
+    return card.classList.contains('kg-video-card')
+        ? card.querySelector('.kg-video-container video')
+        : card.querySelector('iframe, video');
+}
+
+function isVideoEmbedMedia(media, card) {
+    if (!media) {
+        return false;
+    }
+
+    if (media.tagName === 'VIDEO' || card.classList.contains('kg-video-card')) {
+        return true;
+    }
+
+    const src = media.getAttribute('src') || '';
+    return VIDEO_HOST_PATTERN.test(src);
+}
+
+function getVideoDimensions(media) {
+    const width = toVideoDimension(media.videoWidth) || toVideoDimension(media.getAttribute('width')) || toVideoDimension(media.width);
+    const height = toVideoDimension(media.videoHeight) || toVideoDimension(media.getAttribute('height')) || toVideoDimension(media.height);
+
+    if (!width || !height) {
+        return null;
+    }
+
+    return {width, height};
+}
+
+function getVideoOrientation(width, height) {
+    const ratio = width / height;
+
+    if (ratio < 0.9) {
+        return 'portrait';
+    }
+
+    if (ratio <= 1.2) {
+        return 'square';
+    }
+
+    return 'landscape';
+}
+
+function getVideoMaxWidth(width, height, media) {
+    const orientation = getVideoOrientation(width, height);
+
+    if (orientation === 'portrait') {
+        if (media.tagName === 'IFRAME') {
+            return `${PORTRAIT_MAX_WIDTH}px`;
+        }
+
+        return `${Math.min(width, PORTRAIT_MAX_WIDTH)}px`;
+    }
+
+    if (orientation === 'square') {
+        return `${Math.min(width, SQUARE_MAX_WIDTH)}px`;
+    }
+
+    if (media.tagName === 'IFRAME' || width >= LANDSCAPE_FULL_WIDTH) {
+        return '100%';
+    }
+
+    return `${width}px`;
+}
+
+function applyResponsiveVideoLayout(card) {
+    const media = getVideoCardMedia(card);
+
+    if (!isVideoEmbedMedia(media, card)) {
+        return;
+    }
+
+    if (media.tagName === 'VIDEO' && !media.dataset.samsarResponsiveVideoBound) {
+        media.dataset.samsarResponsiveVideoBound = 'true';
+        media.addEventListener('loadedmetadata', () => applyResponsiveVideoLayout(card), {once: true});
+    }
+
+    const dimensions = getVideoDimensions(media);
+
+    if (!dimensions) {
+        return;
+    }
+
+    const {width, height} = dimensions;
+    const orientation = getVideoOrientation(width, height);
+
+    card.classList.add(RESPONSIVE_VIDEO_CLASS);
+    media.classList.add(RESPONSIVE_VIDEO_MEDIA_CLASS);
+    card.style.setProperty('--kg-samsar-video-aspect-ratio', `${width} / ${height}`);
+    card.style.setProperty('--kg-samsar-video-max-width', getVideoMaxWidth(width, height, media));
+    card.dataset.samsarVideoWidth = String(Math.round(width));
+    card.dataset.samsarVideoHeight = String(Math.round(height));
+    card.dataset.samsarVideoOrientation = orientation;
 }
 
 /**
@@ -247,6 +355,43 @@ export default class KoenigLexicalEditor extends Component {
     }
 
     ReactComponent = (props) => {
+        const editorRootRef = useRef(null);
+
+        useEffect(() => {
+            const root = editorRootRef.current;
+
+            if (!root) {
+                return undefined;
+            }
+
+            let animationFrame = null;
+            const scan = () => {
+                root.querySelectorAll('.kg-video-card, .kg-embed-card').forEach(applyResponsiveVideoLayout);
+            };
+            const scheduleScan = () => {
+                if (animationFrame) {
+                    window.cancelAnimationFrame(animationFrame);
+                }
+                animationFrame = window.requestAnimationFrame(scan);
+            };
+            const observer = new MutationObserver(scheduleScan);
+
+            scan();
+            observer.observe(root, {
+                childList: true,
+                subtree: true
+            });
+            window.addEventListener('resize', scheduleScan);
+
+            return () => {
+                if (animationFrame) {
+                    window.cancelAnimationFrame(animationFrame);
+                }
+                observer.disconnect();
+                window.removeEventListener('resize', scheduleScan);
+            };
+        }, []);
+
         const directVideoMimeTypes = {
             m4v: 'video/mp4',
             mov: 'video/quicktime',
@@ -289,7 +434,7 @@ export default class KoenigLexicalEditor extends Component {
                 provider_url: providerUrl,
                 width: 640,
                 height: 360,
-                html: `<video controls playsinline preload="metadata" style="width: 100%; height: auto;"><source src="${url}" type="${mimeType}"></video>`
+                html: `<video controls playsinline preload="metadata" width="640" height="360" style="width: 100%; height: auto;"><source src="${url}" type="${mimeType}"></video>`
             };
         };
 
@@ -540,7 +685,7 @@ export default class KoenigLexicalEditor extends Component {
         };
 
         return (
-            <div className={['koenig-react-editor', 'koenig-lexical', this.args.className].filter(Boolean).join(' ')}>
+            <div ref={editorRootRef} className={['koenig-react-editor', 'koenig-lexical', this.args.className].filter(Boolean).join(' ')}>
                 <ErrorHandler config={this.config}>
                     <Suspense fallback={<p className="koenig-react-editor-loading">Loading editor...</p>}>
                         <KGEditorComponent />

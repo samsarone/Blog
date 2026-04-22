@@ -1,5 +1,10 @@
 const {addCreateDocumentOption} = require('../render-utils/add-create-document-option');
 const {renderEmptyContainer} = require('../render-utils/render-empty-container');
+const {
+    applyResponsiveVideoLayout,
+    applyResponsiveVideoMediaClass,
+    toDimension
+} = require('./responsive-video-layout');
 const twitterRenderer = require('./embed/types/twitter');
 
 function renderEmbedNode(node, options = {}) {
@@ -61,6 +66,10 @@ function renderTemplate(node, document, options) {
         figure.innerHTML = node.html;
     }
 
+    if (!isEmail && node.embedType === 'video') {
+        applyResponsiveEmbedLayout(figure, metadata);
+    }
+
     const caption = node.caption;
     if (caption) {
         const figcaption = document.createElement('figcaption');
@@ -71,6 +80,23 @@ function renderTemplate(node, document, options) {
     }
 
     return {element: figure};
+}
+
+function applyResponsiveEmbedLayout(figure, metadata = {}) {
+    const media = figure.querySelector('iframe, video');
+    const width = toDimension(metadata.width) || toDimension(media?.getAttribute('width')) || toDimension(metadata.thumbnail_width);
+    const height = toDimension(metadata.height) || toDimension(media?.getAttribute('height')) || toDimension(metadata.thumbnail_height);
+
+    if (!media || !width || !height) {
+        return;
+    }
+
+    const isIframe = media.tagName === 'IFRAME';
+    applyResponsiveVideoLayout(figure, width, height, {
+        preferFullLandscape: isIframe,
+        preferMobilePortrait: isIframe
+    });
+    applyResponsiveVideoMediaClass(media);
 }
 
 module.exports = renderEmbedNode;

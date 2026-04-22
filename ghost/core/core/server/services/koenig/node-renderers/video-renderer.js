@@ -1,5 +1,6 @@
 const {addCreateDocumentOption} = require('../render-utils/add-create-document-option');
 const {renderEmptyContainer} = require('../render-utils/render-empty-container');
+const {getResponsiveVideoAttributes} = require('./responsive-video-layout');
 
 function renderVideoNode(node, options = {}) {
     addCreateDocumentOption(options);
@@ -25,6 +26,7 @@ function renderVideoNode(node, options = {}) {
 function cardTemplate({node, cardClasses}) {
     const width = node.width;
     const height = node.height;
+    const responsiveVideoAttributes = getResponsiveVideoAttributes(width, height);
     const posterSpacerSrc = `https://img.spacergif.org/v1/${width}x${height}/0a/spacer.png`;
     const autoplayAttr = node.loop ? 'loop autoplay muted' : '';
     const thumbnailSrc = node.customThumbnailSrc || node.thumbnailSrc;
@@ -32,7 +34,7 @@ function cardTemplate({node, cardClasses}) {
 
     return (
         `
-        <figure class="${cardClasses}" data-kg-thumbnail=${node.thumbnailSrc} data-kg-custom-thumbnail=${node.customThumbnailSrc}>
+        <figure class="${cardClasses}${responsiveVideoAttributes.className}" ${responsiveVideoAttributes.attributes} data-kg-thumbnail=${node.thumbnailSrc} data-kg-custom-thumbnail=${node.customThumbnailSrc}>
             <div class="kg-video-container">
                 <video
                     src="${node.src}"
