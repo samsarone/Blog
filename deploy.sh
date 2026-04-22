@@ -278,6 +278,26 @@ sudo mkdir -p "$LIVE_GHOST_DIR/content/themes/samsar"
 sudo rsync -a --delete "$REMOTE_REPO_DIR/ghost/core/content/themes/samsar/" "$LIVE_GHOST_DIR/content/themes/samsar/"
 sudo chown -R ghost:ghost "$LIVE_GHOST_DIR/content/themes/samsar"
 
+echo "Ensuring live Ghost upload directories are writable..."
+sudo mkdir -p \
+    "$LIVE_GHOST_DIR/content/images" \
+    "$LIVE_GHOST_DIR/content/media" \
+    "$LIVE_GHOST_DIR/content/files"
+sudo chown -R ghost:ghost \
+    "$LIVE_GHOST_DIR/content/images" \
+    "$LIVE_GHOST_DIR/content/media" \
+    "$LIVE_GHOST_DIR/content/files"
+sudo find \
+    "$LIVE_GHOST_DIR/content/images" \
+    "$LIVE_GHOST_DIR/content/media" \
+    "$LIVE_GHOST_DIR/content/files" \
+    -type d -exec chmod 775 {} +
+sudo find \
+    "$LIVE_GHOST_DIR/content/images" \
+    "$LIVE_GHOST_DIR/content/media" \
+    "$LIVE_GHOST_DIR/content/files" \
+    -type f -exec chmod 664 {} +
+
 echo "Listing deployed theme files..."
 sudo find "$LIVE_GHOST_DIR/content/themes/samsar" -maxdepth 2 -type f | sort | sed -n '1,80p'
 
