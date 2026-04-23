@@ -401,11 +401,19 @@ img {
     height: 100%;
 }
 
-.post-card-image,
-.article-image {
+.post-card-image {
     width: 100%;
     display: block;
     object-fit: cover;
+}
+
+.article-image {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    margin: 24px auto 32px;
+    object-fit: contain;
 }
 
 .post-card-image {
@@ -471,9 +479,24 @@ img {
     max-width: 100%;
 }
 
-.article-content .kg-width-wide img,
-.article-content .kg-width-full img {
-    width: 100%;
+.article-content .kg-image-card {
+    width: fit-content;
+    max-width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    text-align: center;
+}
+
+.article-content .kg-image-card img,
+.article-content .kg-width-wide.kg-image-card img,
+.article-content .kg-width-full.kg-image-card img {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    margin-right: auto;
+    margin-left: auto;
+    object-fit: contain;
 }
 
 .article-content .kg-gallery-container {
