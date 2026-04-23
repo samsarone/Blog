@@ -2,14 +2,31 @@
 
 <section class="hero">
     <div class="hero-grid">
-        <aside class="hero-splash" aria-label="Samsar platform preview">
-            <img class="hero-splash-image" src="{{asset "images/samsar-one-business-omni-banner.png"}}" alt="Samsar business omni banner">
-            <div class="hero-overlay-actions">
-                <a class="button button-primary" href="#latest">Latest posts</a>
-                <a class="button button-secondary" href="https://docs.samsar.one">Docs</a>
-                <a class="button button-secondary" href="https://app.samsar.one">Studio</a>
-            </div>
-        </aside>
+        {{#foreach posts limit="1"}}
+            <aside class="hero-splash" aria-label="Latest blog post">
+                <a class="hero-splash-link" href="{{url}}" aria-label="View latest post: {{title}}">
+                    {{#if feature_image}}
+                        <img class="hero-splash-image" src="{{img_url feature_image size="xl"}}" alt="{{title}}">
+                    {{else}}
+                        <img class="hero-splash-image" src="{{asset "images/samsar-one-business-omni-banner.png"}}" alt="{{title}}">
+                    {{/if}}
+                </a>
+                <div class="hero-overlay-actions">
+                    <a class="button button-primary" href="{{url}}">View latest</a>
+                    <a class="button button-secondary" href="https://docs.samsar.one">Docs</a>
+                    <a class="button button-secondary" href="https://app.samsar.one">Studio</a>
+                </div>
+            </aside>
+        {{else}}
+            <aside class="hero-splash" aria-label="Samsar platform preview">
+                <img class="hero-splash-image" src="{{asset "images/samsar-one-business-omni-banner.png"}}" alt="Samsar business omni banner">
+                <div class="hero-overlay-actions">
+                    <a class="button button-primary" href="#latest">View latest</a>
+                    <a class="button button-secondary" href="https://docs.samsar.one">Docs</a>
+                    <a class="button button-secondary" href="https://app.samsar.one">Studio</a>
+                </div>
+            </aside>
+        {{/foreach}}
     </div>
     <div class="section-heading" id="latest">
         <div>
