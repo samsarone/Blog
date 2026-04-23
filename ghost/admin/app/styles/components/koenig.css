@@ -118,11 +118,19 @@
 .koenig-react-editor .kg-image-card,
 .koenig-react-editor .kg-width-wide.kg-image-card,
 .koenig-react-editor .kg-width-full.kg-image-card {
-    width: fit-content !important;
+    width: 100% !important;
     max-width: 100% !important;
     margin-right: auto !important;
     margin-left: auto !important;
     text-align: center;
+}
+
+.koenig-react-editor .kg-image-card > a,
+.koenig-react-editor .kg-image-card > picture {
+    display: block !important;
+    max-width: 100% !important;
+    margin-right: auto !important;
+    margin-left: auto !important;
 }
 
 .koenig-react-editor .kg-image-card img,
@@ -135,6 +143,50 @@
     height: auto !important;
     margin-right: auto !important;
     margin-left: auto !important;
+    object-fit: contain !important;
+}
+
+.koenig-react-editor .kg-image-card.kg-samsar-natural-image > a,
+.koenig-react-editor .kg-image-card.kg-samsar-natural-image > picture,
+.koenig-react-editor .kg-image-card.kg-samsar-natural-image > img {
+    width: min(100%, var(--kg-samsar-image-natural-width, 100%)) !important;
+}
+
+.koenig-react-editor .kg-image-card.kg-samsar-natural-image > a img,
+.koenig-react-editor .kg-image-card.kg-samsar-natural-image > picture img,
+.koenig-react-editor .kg-image-card.kg-samsar-natural-image > img {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: var(--kg-samsar-image-aspect-ratio, auto) !important;
+}
+
+.koenig-react-editor > img,
+.koenig-react-editor p > img,
+.koenig-react-editor li > img {
+    display: block !important;
+    width: auto !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin-right: auto !important;
+    margin-left: auto !important;
+    object-fit: contain !important;
+}
+
+.koenig-react-editor .kg-gallery-row {
+    align-items: center !important;
+}
+
+.koenig-react-editor .kg-gallery-image {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+}
+
+.koenig-react-editor .kg-gallery-image img {
+    width: auto !important;
+    max-width: 100% !important;
+    height: auto !important;
     object-fit: contain !important;
 }
 

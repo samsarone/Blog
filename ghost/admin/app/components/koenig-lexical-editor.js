@@ -59,6 +59,8 @@ export function getCardVisibilitySettings(cardConfig = {}) {
 
 const RESPONSIVE_VIDEO_CLASS = 'kg-samsar-responsive-video';
 const RESPONSIVE_VIDEO_MEDIA_CLASS = 'kg-samsar-responsive-video-media';
+const NATURAL_IMAGE_CLASS = 'kg-samsar-natural-image';
+const NATURAL_IMAGE_MEDIA_CLASS = 'kg-samsar-natural-image-media';
 const PORTRAIT_MAX_WIDTH = 420;
 const SQUARE_MAX_WIDTH = 560;
 const LANDSCAPE_FULL_WIDTH = 720;
@@ -163,6 +165,36 @@ function applyResponsiveVideoLayout(card) {
     card.dataset.samsarVideoWidth = String(Math.round(width));
     card.dataset.samsarVideoHeight = String(Math.round(height));
     card.dataset.samsarVideoOrientation = orientation;
+}
+
+function getImageCardImage(card) {
+    return card.querySelector('img.kg-image, picture img, img');
+}
+
+function applyNaturalImageLayout(card) {
+    const image = getImageCardImage(card);
+
+    if (!image) {
+        return;
+    }
+
+    if (!image.complete || !image.naturalWidth || !image.naturalHeight) {
+        if (!image.dataset.samsarNaturalImageBound) {
+            image.dataset.samsarNaturalImageBound = 'true';
+            image.addEventListener('load', () => applyNaturalImageLayout(card), {once: true});
+        }
+        return;
+    }
+
+    const width = image.naturalWidth;
+    const height = image.naturalHeight;
+
+    card.classList.add(NATURAL_IMAGE_CLASS);
+    image.classList.add(NATURAL_IMAGE_MEDIA_CLASS);
+    card.style.setProperty('--kg-samsar-image-natural-width', `${width}px`);
+    card.style.setProperty('--kg-samsar-image-aspect-ratio', `${width} / ${height}`);
+    card.dataset.samsarImageWidth = String(Math.round(width));
+    card.dataset.samsarImageHeight = String(Math.round(height));
 }
 
 /**
@@ -367,6 +399,7 @@ export default class KoenigLexicalEditor extends Component {
             let animationFrame = null;
             const scan = () => {
                 root.querySelectorAll('.kg-video-card, .kg-embed-card').forEach(applyResponsiveVideoLayout);
+                root.querySelectorAll('.kg-image-card').forEach(applyNaturalImageLayout);
             };
             const scheduleScan = () => {
                 if (animationFrame) {

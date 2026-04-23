@@ -1,7 +1,10 @@
 (function () {
-    const CARD_SELECTOR = '.kg-video-card, .kg-embed-card';
+    const VIDEO_CARD_SELECTOR = '.kg-video-card, .kg-embed-card';
+    const IMAGE_CARD_SELECTOR = '.kg-image-card';
     const RESPONSIVE_CLASS = 'kg-samsar-responsive-video';
     const MEDIA_CLASS = 'kg-samsar-responsive-video-media';
+    const NATURAL_IMAGE_CLASS = 'kg-samsar-natural-image';
+    const NATURAL_IMAGE_MEDIA_CLASS = 'kg-samsar-natural-image-media';
     const PORTRAIT_MAX_WIDTH = 420;
     const SQUARE_MAX_WIDTH = 560;
     const LANDSCAPE_FULL_WIDTH = 720;
@@ -108,8 +111,39 @@
         card.dataset.samsarVideoOrientation = orientation;
     }
 
+    function getImage(card) {
+        return card.querySelector('img.kg-image, picture img, img');
+    }
+
+    function applyImageLayout(card) {
+        const image = getImage(card);
+
+        if (!image) {
+            return;
+        }
+
+        if (!image.complete || !image.naturalWidth || !image.naturalHeight) {
+            if (!image.dataset.samsarNaturalImageBound) {
+                image.dataset.samsarNaturalImageBound = 'true';
+                image.addEventListener('load', () => applyImageLayout(card), {once: true});
+            }
+            return;
+        }
+
+        const width = image.naturalWidth;
+        const height = image.naturalHeight;
+
+        card.classList.add(NATURAL_IMAGE_CLASS);
+        image.classList.add(NATURAL_IMAGE_MEDIA_CLASS);
+        card.style.setProperty('--kg-samsar-image-natural-width', `${width}px`);
+        card.style.setProperty('--kg-samsar-image-aspect-ratio', `${width} / ${height}`);
+        card.dataset.samsarImageWidth = String(Math.round(width));
+        card.dataset.samsarImageHeight = String(Math.round(height));
+    }
+
     function applyLayouts(root) {
-        root.querySelectorAll(CARD_SELECTOR).forEach(applyCardLayout);
+        root.querySelectorAll(VIDEO_CARD_SELECTOR).forEach(applyCardLayout);
+        root.querySelectorAll(IMAGE_CARD_SELECTOR).forEach(applyImageLayout);
     }
 
     function scheduleApply(root) {
