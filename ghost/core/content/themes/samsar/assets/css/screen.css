@@ -708,7 +708,19 @@ img {
 
     .site-nav {
         gap: 6px;
-        justify-content: flex-end;
+        justify-content: flex-start;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .site-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .site-nav > a {
+        scroll-snap-align: start;
     }
 
     .site-nav a,
@@ -720,15 +732,11 @@ img {
     }
 
     .site-nav .nav-collapsed {
-        display: none;
+        display: inline-flex;
     }
 
     .nav-more {
-        display: block;
-    }
-
-    .nav-more-panel {
-        min-width: 142px;
+        display: none;
     }
 
     .hero-splash,
@@ -750,6 +758,43 @@ img {
         bottom: 16px;
         width: calc(100% - 32px);
         gap: 10px;
+        flex-wrap: nowrap;
+    }
+
+    .hero-overlay-actions::before {
+        display: none;
+    }
+
+    .home-template .hero {
+        padding: 22px 0 20px;
+    }
+
+    .home-template .hero-splash {
+        min-height: 210px;
+        border-radius: 22px;
+    }
+
+    .home-template .hero-splash-image {
+        min-height: 210px;
+    }
+
+    .home-template .hero-overlay-actions .button-secondary {
+        display: none;
+    }
+
+    .home-template .hero-overlay-actions .button-primary {
+        min-height: 38px;
+        padding: 0 14px;
+        background: rgba(5, 10, 17, 0.72);
+        border-color: rgba(236, 243, 251, 0.22);
+        color: var(--ink);
+        box-shadow: none;
+        backdrop-filter: blur(10px);
+    }
+
+    .home-template .section-heading,
+    .home-template .post-feed .post-card:first-child {
+        display: none;
     }
 
     .section-heading {
@@ -776,6 +821,12 @@ img {
         line-height: 1.05;
     }
 
+    .article-image {
+        width: 100%;
+        margin: 18px auto 24px;
+        border-radius: 18px;
+    }
+
     .article-excerpt,
     .article-content {
         font-size: 1rem;
@@ -796,9 +847,34 @@ img {
     }
 }
 
+@media (max-width: 480px) {
+    .site-header {
+        flex-wrap: wrap;
+        align-items: flex-start;
+        row-gap: 8px;
+    }
+
+    .brand {
+        width: 100%;
+    }
+
+    .site-nav {
+        flex: 0 0 100%;
+        width: 100%;
+        gap: 4px;
+    }
+
+    .site-nav a,
+    .nav-more summary {
+        min-height: 34px;
+        padding: 7px 8px;
+        font-size: 0.78rem;
+    }
+}
+
 @media (max-width: 420px) {
     .site-nav .nav-studio {
-        display: none;
+        display: inline-flex;
     }
 
     .nav-more-panel .nav-more-compact {
@@ -810,12 +886,11 @@ img {
     }
 
     .hero-overlay-actions {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        display: flex;
     }
 
     .hero-overlay-actions .button:first-child {
-        grid-column: 1 / -1;
+        flex: 0 0 auto;
     }
 
     .button {
