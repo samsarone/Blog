@@ -177,6 +177,191 @@ if [[ "${FULL_DEPLOY}" == "1" ]]; then
 const fs = require('fs');
 const path = require('path');
 
+function replaceOnce(filePath, search, replacement, marker) {
+    const fullPath = path.join(process.cwd(), filePath);
+    let source = fs.readFileSync(fullPath, 'utf8');
+
+    if (!source.includes(search)) {
+        if (marker && source.includes(marker)) {
+            return;
+        }
+        throw new Error(`Could not apply admin compatibility patch to ${filePath}`);
+    }
+
+    source = source.replace(search, replacement);
+    fs.writeFileSync(fullPath, source);
+}
+
+replaceOnce(
+    'apps/admin-x-framework/src/api/current-user.ts',
+`    const result = useQuery({
+        queryKey: currentUserQueryKey,
+        queryFn: () => fetchApi<UsersResponseType>(currentUserUrl),
+        select: data => data.users[0]
+    });`,
+`    const result = useQuery({
+        queryKey: currentUserQueryKey,
+        queryFn: async () => {
+            const data = await fetchApi<UsersResponseType>(currentUserUrl);
+            const user = data.users[0];
+
+            // Samsar compatibility: older admin API responses can omit roles for users/me.
+            if (user && !Array.isArray(user.roles)) {
+                try {
+                    const usersWithRoles = await fetchApi<UsersResponseType>(apiUrl('/users/', {include: 'roles', limit: '100'}));
+                    const userWithRoles = usersWithRoles.users.find(u => u.id === user.id);
+
+                    if (userWithRoles?.roles) {
+                        return {
+                            ...data,
+                            users: [{
+                                ...user,
+                                roles: userWithRoles.roles
+                            }]
+                        };
+                    }
+                } catch {
+                    return data;
+                }
+            }
+
+            return data;
+        },
+        select: data => data.users[0]
+    });`,
+    'Samsar compatibility: older admin API responses can omit roles for users/me.'
+);
+
+replaceOnce(
+    'apps/admin-x-framework/src/api/users.ts',
+`// Helpers
+
+export function isOwnerUser(user: User) {
+    return user.roles.some(role => role.name === 'Owner');
+}
+
+export function isAdminUser(user: User) {
+    return user.roles.some(role => role.name === 'Administrator');
+}
+
+export function isEditorUser(user: User) {
+    const isAnyEditor = user.roles.some(role => role.name === 'Editor')
+        || user.roles.some(role => role.name === 'Super Editor');
+    return isAnyEditor;
+}
+
+export function isSuperEditorUser(user: User) {
+    return user.roles.some(role => role.name === 'Super Editor');
+}
+
+export function isAuthorUser(user: User) {
+    return user.roles.some(role => role.name === 'Author');
+}
+
+export function isContributorUser(user: User) {
+    return user.roles.some(role => role.name === 'Contributor');
+}
+
+export function isAuthorOrContributor(user: User) {
+    return isAuthorUser(user) || isContributorUser(user);
+}
+
+export function canAccessSettings(user: User) {
+    return isOwnerUser(user) || isAdminUser(user) || isEditorUser(user);
+}
+
+export function canManageMembers(user: User) {
+    // Owner, Admin, or Super Editor can manage members
+    return isOwnerUser(user) || isAdminUser(user) || isSuperEditorUser(user);
+}
+
+export function canManageTags(user: User) {
+    // Owner, Admin or Editor can manage tags
+    return isOwnerUser(user) || isAdminUser(user) || isEditorUser(user);
+}
+
+export function hasAdminAccess(user: User) {
+    return isOwnerUser(user) || isAdminUser(user);
+}`,
+`// Helpers
+
+type UserRoleLike = Partial<UserRole> | UserRole['name'];
+type UserWithOptionalRoles = Omit<User, 'roles'> & {roles?: UserRoleLike[]; role?: UserRoleLike | UserRoleLike[]};
+
+// Samsar compatibility: tolerate current-user payloads that omit roles.
+function getUserRoles(user: User): UserRoleLike[] {
+    const maybeUser = user as UserWithOptionalRoles;
+
+    if (Array.isArray(maybeUser.roles)) {
+        return maybeUser.roles;
+    }
+
+    if (Array.isArray(maybeUser.role)) {
+        return maybeUser.role;
+    }
+
+    return maybeUser.role ? [maybeUser.role] : [];
+}
+
+function hasRole(user: User, roleName: UserRole['name']) {
+    return getUserRoles(user).some((role) => {
+        return typeof role === 'string' ? role === roleName : role?.name === roleName;
+    });
+}
+
+export function isOwnerUser(user: User) {
+    return hasRole(user, 'Owner');
+}
+
+export function isAdminUser(user: User) {
+    return hasRole(user, 'Administrator');
+}
+
+export function isEditorUser(user: User) {
+    return hasRole(user, 'Editor') || hasRole(user, 'Super Editor');
+}
+
+export function isSuperEditorUser(user: User) {
+    return hasRole(user, 'Super Editor');
+}
+
+export function isAuthorUser(user: User) {
+    return hasRole(user, 'Author');
+}
+
+export function isContributorUser(user: User) {
+    return hasRole(user, 'Contributor');
+}
+
+export function isAuthorOrContributor(user: User) {
+    return isAuthorUser(user) || isContributorUser(user);
+}
+
+export function canAccessSettings(user: User) {
+    return isOwnerUser(user) || isAdminUser(user) || isEditorUser(user);
+}
+
+export function canManageMembers(user: User) {
+    // Owner, Admin, or Super Editor can manage members
+    return isOwnerUser(user) || isAdminUser(user) || isSuperEditorUser(user);
+}
+
+export function canManageTags(user: User) {
+    // Owner, Admin or Editor can manage tags
+    return isOwnerUser(user) || isAdminUser(user) || isEditorUser(user);
+}
+
+export function hasAdminAccess(user: User) {
+    return isOwnerUser(user) || isAdminUser(user);
+}`,
+    'Samsar compatibility: tolerate current-user payloads that omit roles.'
+);
+JS
+
+    node <<'JS'
+const fs = require('fs');
+const path = require('path');
+
 const packageJsonPath = path.join(process.cwd(), 'package.json');
 const pkg = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 
