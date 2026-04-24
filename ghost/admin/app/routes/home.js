@@ -18,10 +18,10 @@ export default class HomeRoute extends AuthenticatedRoute {
 
         if (this.session.user?.isAdmin) {
             this.router.transitionTo('/analytics');
-        } else if (this.session.user?.isContributor || this.session.user?.isAuthor) {
+        } else if (this.session.user?.isContributor) {
             this.router.transitionTo('posts');
         } else {
-            this.router.transitionTo('posts');
+            this.router.transitionTo('site');
         }
     }
 }

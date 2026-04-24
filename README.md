@@ -13,7 +13,7 @@ Minimal Ghost fork for the Samsar blog deployment.
 ## What was removed
 
 - monorepo tooling and CI metadata
-- docs, apps, e2e, scripts, and editor-specific folders
+- docs, e2e, scripts, editor-specific folders, and apps that are not required for production builds
 - test suites and several dev-only config files
 
 ## Local install
@@ -44,6 +44,7 @@ Deploy commands:
 - workspace dependency install
 - `ghost/core` user-facing asset build
 - `ghost/admin` production build
+- required Ghost workspace app builds, including the React admin shell in `apps/admin`
 - full `ghost/core` runtime sync into the live Ghost directory while preserving live content and config
 
 Set `AUTO_COMMIT_MESSAGE` to override the default commit message.

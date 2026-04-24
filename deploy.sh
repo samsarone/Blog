@@ -103,6 +103,7 @@ packages:
   - 'apps/admin-x-design-system'
   - 'apps/admin-x-framework'
   - 'apps/admin-x-settings'
+  - 'apps/admin'
   - 'apps/activitypub'
   - 'apps/posts'
   - 'apps/shade'
@@ -143,6 +144,7 @@ if [[ "${FULL_DEPLOY}" == "1" ]]; then
         apps/admin-x-design-system \
         apps/admin-x-framework \
         apps/admin-x-settings \
+        apps/admin \
         apps/activitypub \
         apps/posts \
         apps/shade \
@@ -219,6 +221,7 @@ JS
     pnpm --filter @tryghost/posts build
     pnpm --filter @tryghost/stats build
     (cd ghost/admin && pnpm build)
+    pnpm --filter @tryghost/admin build
 
     echo "Syncing full Ghost runtime into active Ghost version directory..."
     LIVE_GHOST_VERSION_DIR="$(readlink -f "$LIVE_GHOST_DIR/current" 2>/dev/null || true)"
