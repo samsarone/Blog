@@ -586,6 +586,41 @@ replaceOnce(
 `                lazy: lazyComponent(() => import('./views/SamsarAnalytics/samsar-analytics'))`,
     './views/SamsarAnalytics/samsar-analytics'
 );
+
+replaceOnce(
+    'apps/admin/src/layout/app-sidebar/nav-main.tsx',
+`    // Only show NavMain for admin users
+    if (!currentUser || !hasAdminAccess(currentUser)) {
+        return null;
+    }`,
+`    const rolesAreLoaded = Array.isArray(currentUser?.roles) && currentUser.roles.length > 0;
+
+    // Samsar compatibility: keep the full admin nav visible while legacy current-user roles hydrate.
+    if (!currentUser || (rolesAreLoaded && !hasAdminAccess(currentUser))) {
+        return null;
+    }`,
+    'Samsar compatibility: keep the full admin nav visible while legacy current-user roles hydrate.'
+);
+
+replaceOnce(
+    'apps/admin/src/layout/app-sidebar/nav-settings.tsx',
+`    const { data: currentUser } = useCurrentUser();
+    const showSettings = currentUser && canAccessSettings(currentUser);`,
+`    const { data: currentUser } = useCurrentUser();
+    const rolesAreLoaded = Array.isArray(currentUser?.roles) && currentUser.roles.length > 0;
+    const showSettings = currentUser && (!rolesAreLoaded || canAccessSettings(currentUser));`,
+    'const showSettings = currentUser && (!rolesAreLoaded || canAccessSettings(currentUser));'
+);
+
+replaceOnce(
+    'apps/admin/src/layout/app-sidebar/nav-content.tsx',
+`    const showTags = currentUser && canManageTags(currentUser);
+    const showMembers = currentUser && canManageMembers(currentUser);`,
+`    const rolesAreLoaded = Array.isArray(currentUser?.roles) && currentUser.roles.length > 0;
+    const showTags = currentUser && (!rolesAreLoaded || canManageTags(currentUser));
+    const showMembers = currentUser && (!rolesAreLoaded || canManageMembers(currentUser));`,
+    'const showTags = currentUser && (!rolesAreLoaded || canManageTags(currentUser));'
+);
 JS
 
     node <<'JS'

@@ -296,10 +296,15 @@ export default class StateBridgeService extends Service.extend(Evented) {
             return !activeView;
         }
 
-        // If we're not checking the main link, then this is a custom view. If
-        // there's no active view, this custom view link can't be active
+        // If we're not checking the main link, this can be either a custom view
+        // or one of the built-in filtered views such as Posts > Published.
         if (!activeView) {
-            return false;
+            const currentQueryParams = this.router.currentRoute?.queryParams || {};
+            const cleanedCurrentParams = Object.fromEntries(
+                Object.entries(currentQueryParams).filter(([, value]) => value !== null && value !== undefined && value !== '')
+            );
+
+            return this.customViews.isFilterEqual(cleanedCurrentParams, queryParams);
         }
 
         // If we've reached this far, we're currently on an active custom view

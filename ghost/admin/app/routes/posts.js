@@ -76,6 +76,8 @@ export default class PostsRoute extends AuthenticatedRoute {
     }
 
     model(params) {
+        params = this._mergeUrlQueryParams(params);
+
         // Reset analytics cache every time we load the posts index to ensure fresh data
         if (this.settings.webAnalyticsEnabled || this.settings.membersTrackSources) {
             this.postAnalytics.reset();
@@ -135,6 +137,7 @@ export default class PostsRoute extends AuthenticatedRoute {
     // trigger a background load of all tags and authors for use in filter dropdowns
     setupController(controller, model) {
         super.setupController(...arguments);
+        this._syncControllerQueryParamsFromUrl(controller);
 
         if (!this.session.user.isAuthorOrContributor && !controller._hasLoadedAuthors) {
             this.store.query('user', {limit: 'all'}).then(() => {
@@ -251,5 +254,46 @@ export default class PostsRoute extends AuthenticatedRoute {
 
             return undefined;
         }).compact().join('+');
+    }
+
+    _mergeUrlQueryParams(params) {
+        const urlParams = this._getUrlQueryParams();
+
+        return ['type', 'visibility', 'author', 'tag', 'order'].reduce((mergedParams, key) => {
+            if (isBlank(mergedParams[key]) && !isBlank(urlParams[key])) {
+                mergedParams[key] = urlParams[key];
+            }
+
+            return mergedParams;
+        }, {...params});
+    }
+
+    _syncControllerQueryParamsFromUrl(controller) {
+        const urlParams = this._getUrlQueryParams();
+
+        ['type', 'visibility', 'author', 'tag', 'order'].forEach((key) => {
+            if (isBlank(controller[key]) && !isBlank(urlParams[key])) {
+                controller[key] = urlParams[key];
+            }
+        });
+    }
+
+    _getUrlQueryParams() {
+        if (typeof window === 'undefined') {
+            return {};
+        }
+
+        const hash = window.location.hash || '';
+        const hashQueryIndex = hash.indexOf('?');
+        const queryString = hashQueryIndex >= 0 ? hash.slice(hashQueryIndex + 1) : window.location.search.slice(1);
+        const queryParams = new URLSearchParams(queryString);
+
+        return ['type', 'visibility', 'author', 'tag', 'order'].reduce((params, key) => {
+            if (queryParams.has(key)) {
+                params[key] = queryParams.get(key);
+            }
+
+            return params;
+        }, {});
     }
 }
