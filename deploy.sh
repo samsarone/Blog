@@ -356,6 +356,236 @@ export function hasAdminAccess(user: User) {
 }`,
     'Samsar compatibility: tolerate current-user payloads that omit roles.'
 );
+
+const samsarAnalyticsPath = path.join(process.cwd(), 'apps/stats/src/views/SamsarAnalytics/samsar-analytics.tsx');
+fs.mkdirSync(path.dirname(samsarAnalyticsPath), {recursive: true});
+fs.writeFileSync(samsarAnalyticsPath, `import DateRangeSelect from '../Stats/components/date-range-select';
+import React, {useMemo} from 'react';
+import StatsHeader from '../Stats/layout/stats-header';
+import StatsLayout from '../Stats/layout/stats-layout';
+import StatsView from '../Stats/layout/stats-view';
+import {ALL_AUDIENCES} from '@src/utils/constants';
+import {Card, CardContent, CardHeader, CardTitle, NavbarActions} from '@tryghost/shade/components';
+import {LucideIcon, formatNumber} from '@tryghost/shade/utils';
+import {formatQueryDate, getRangeDates} from '@tryghost/shade/app';
+import {getAudienceQueryParam} from '@src/utils/audience';
+import {useGlobalData} from '@src/providers/global-data-provider';
+import {useTinybirdQuery} from '@tryghost/admin-x-framework';
+import {useTopPostsViews} from '@tryghost/admin-x-framework/api/stats';
+
+type KpiRow = {
+    pageviews?: number;
+    visits?: number;
+};
+
+type SourceRow = {
+    source?: string | number;
+    visits?: number;
+    pageviews?: number;
+};
+
+interface MetricCardProps {
+    detail: string;
+    icon: React.ReactNode;
+    isLoading?: boolean;
+    title: string;
+    value: string;
+}
+
+const toNumber = (value: unknown) => {
+    const numberValue = Number(value);
+    return Number.isFinite(numberValue) ? numberValue : 0;
+};
+
+const formatSource = (source: SourceRow['source']) => {
+    if (source === undefined || source === null || source === '') {
+        return 'Direct / unknown';
+    }
+
+    return String(source);
+};
+
+const EmptyBlock: React.FC<{children: React.ReactNode}> = ({children}) => (
+    <div className='flex min-h-[180px] items-center justify-center rounded-md border border-dashed border-border px-6 text-center text-sm text-muted-foreground'>
+        {children}
+    </div>
+);
+
+const MetricCard: React.FC<MetricCardProps> = ({
+    detail,
+    icon,
+    isLoading = false,
+    title,
+    value
+}) => (
+    <Card>
+        <CardHeader>
+            <CardTitle className='flex items-center justify-between text-sm font-medium text-muted-foreground'>
+                <span>{title}</span>
+                {icon}
+            </CardTitle>
+        </CardHeader>
+        <CardContent>
+            {isLoading ? (
+                <div className='h-9 w-28 animate-pulse rounded bg-muted' />
+            ) : (
+                <div className='text-3xl font-semibold tracking-normal'>{value}</div>
+            )}
+            <div className='mt-2 text-sm text-muted-foreground'>{detail}</div>
+        </CardContent>
+    </Card>
+);
+
+const SamsarAnalytics: React.FC = () => {
+    const {statsConfig, isLoading: isConfigLoading, range} = useGlobalData();
+    const {startDate, endDate, timezone} = getRangeDates(range);
+    const dateFrom = formatQueryDate(startDate);
+    const dateTo = formatQueryDate(endDate);
+
+    const tinybirdParams = useMemo(() => ({
+        site_uuid: statsConfig?.id || '',
+        date_from: dateFrom,
+        date_to: dateTo,
+        timezone,
+        member_status: getAudienceQueryParam(ALL_AUDIENCES)
+    }), [statsConfig?.id, dateFrom, dateTo, timezone]);
+
+    const {data: topPostsData, isLoading: isTopPostsLoading} = useTopPostsViews({
+        searchParams: {
+            date_from: dateFrom,
+            date_to: dateTo,
+            limit: '20',
+            timezone
+        }
+    });
+
+    const {data: kpiData, loading: isKpiLoading} = useTinybirdQuery({
+        endpoint: 'api_kpis',
+        statsConfig,
+        params: tinybirdParams,
+        enabled: Boolean(statsConfig)
+    });
+
+    const {data: sourcesData, loading: isSourcesLoading} = useTinybirdQuery({
+        endpoint: 'api_top_sources',
+        statsConfig,
+        params: tinybirdParams,
+        enabled: Boolean(statsConfig)
+    });
+
+    const topPosts = topPostsData?.stats || [];
+    const kpiRows = (kpiData as KpiRow[] | undefined) || [];
+    const sourceRows = ((sourcesData as SourceRow[] | undefined) || []).slice(0, 5);
+    const topPostViews = topPosts.reduce((sum, post) => sum + toNumber(post.views), 0);
+    const trackedViews = kpiRows.reduce((sum, row) => sum + toNumber(row.pageviews), 0);
+    const totalViews = statsConfig ? trackedViews : topPostViews;
+    const topSource = sourceRows[0];
+    const topSourceVisits = topSource ? toNumber(topSource.visits ?? topSource.pageviews) : 0;
+
+    return (
+        <StatsLayout>
+            <StatsHeader>
+                <NavbarActions>
+                    <DateRangeSelect excludeRanges={['today']} />
+                </NavbarActions>
+            </StatsHeader>
+            <StatsView isLoading={isConfigLoading} loadingComponent={<></>}>
+                <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+                    <MetricCard
+                        detail={statsConfig ? 'Pageviews in the selected range' : 'Top post views in the selected range'}
+                        icon={<LucideIcon.ChartColumnIncreasing className='text-muted-foreground' size={18} strokeWidth={1.5} />}
+                        isLoading={statsConfig ? isKpiLoading : isTopPostsLoading}
+                        title='Views'
+                        value={formatNumber(totalViews)}
+                    />
+                    <MetricCard
+                        detail='Top posts returned for this range'
+                        icon={<LucideIcon.FileText className='text-muted-foreground' size={18} strokeWidth={1.5} />}
+                        isLoading={isTopPostsLoading}
+                        title='Posts'
+                        value={formatNumber(topPosts.length)}
+                    />
+                    <MetricCard
+                        detail={topSource ? formatNumber(topSourceVisits) + ' visits' : 'Source data is available when web analytics is configured'}
+                        icon={<LucideIcon.Globe className='text-muted-foreground' size={18} strokeWidth={1.5} />}
+                        isLoading={Boolean(statsConfig) && isSourcesLoading}
+                        title='Top source'
+                        value={topSource ? formatSource(topSource.source) : 'Unavailable'}
+                    />
+                </div>
+
+                <div className='grid grid-cols-1 gap-6 lg:grid-cols-2'>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Top posts</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {isTopPostsLoading ? (
+                                <div className='flex flex-col gap-3'>
+                                    {[0, 1, 2, 3, 4].map(item => (
+                                        <div key={item} className='h-11 animate-pulse rounded bg-muted' />
+                                    ))}
+                                </div>
+                            ) : topPosts.length > 0 ? (
+                                <div className='flex flex-col'>
+                                    {topPosts.map(post => (
+                                        <div key={post.post_id} className='flex items-start justify-between gap-4 border-t border-border/50 py-3 first:border-t-0'>
+                                            <div className='min-w-0'>
+                                                <div className='truncate font-medium'>{post.title || 'Untitled post'}</div>
+                                                <div className='text-sm text-muted-foreground'>{post.status}</div>
+                                            </div>
+                                            <div className='shrink-0 font-mono text-sm'>{formatNumber(toNumber(post.views))}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <EmptyBlock>No post view data is available for this range.</EmptyBlock>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Top sources</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {!statsConfig ? (
+                                <EmptyBlock>Source data is not available because web analytics is not configured for this install.</EmptyBlock>
+                            ) : isSourcesLoading ? (
+                                <div className='flex flex-col gap-3'>
+                                    {[0, 1, 2, 3, 4].map(item => (
+                                        <div key={item} className='h-11 animate-pulse rounded bg-muted' />
+                                    ))}
+                                </div>
+                            ) : sourceRows.length > 0 ? (
+                                <div className='flex flex-col'>
+                                    {sourceRows.map((source, index) => (
+                                        <div key={String(source.source || index)} className='flex items-center justify-between gap-4 border-t border-border/50 py-3 first:border-t-0'>
+                                            <div className='min-w-0 truncate font-medium'>{formatSource(source.source)}</div>
+                                            <div className='shrink-0 font-mono text-sm'>{formatNumber(toNumber(source.visits ?? source.pageviews))}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <EmptyBlock>No source data is available for this range.</EmptyBlock>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </StatsView>
+        </StatsLayout>
+    );
+};
+
+export default SamsarAnalytics;
+`);
+
+replaceOnce(
+    'apps/stats/src/routes.tsx',
+`                lazy: lazyComponent(() => import('./views/Stats/Overview'))`,
+`                lazy: lazyComponent(() => import('./views/SamsarAnalytics/samsar-analytics'))`,
+    './views/SamsarAnalytics/samsar-analytics'
+);
 JS
 
     node <<'JS'

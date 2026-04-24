@@ -2,6 +2,10 @@
   "name": "samsar",
   "description": "Samsar landing-inspired Ghost theme with built-in Samsar text enhancement.",
   "version": "0.1.0",
+  "author": {
+    "name": "SamsarOne",
+    "email": "roy@samsar.one"
+  },
   "engines": {
     "ghost": ">=5.0.0"
   },
